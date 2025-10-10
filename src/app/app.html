@@ -1,0 +1,27 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold text-gray-800 mb-6">TailwindCSS + PrimeNG テスト</h1>
+
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4">PrimeNG コンポーネント</h2>
+      <div class="flex gap-4 flex-wrap">
+        <p-button label="Primary" severity="primary" />
+        <p-button label="Success" severity="success" icon="pi pi-check" />
+        <p-button label="Info" severity="info" icon="pi pi-info-circle" />
+        <p-button label="Warning" severity="warn" icon="pi pi-exclamation-triangle" />
+        <p-button label="Danger" severity="danger" icon="pi pi-times" />
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h2 class="text-2xl font-semibold text-gray-700 mb-4">TailwindCSS スタイル</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-blue-500 text-white p-4 rounded-lg text-center">Blue Box</div>
+        <div class="bg-green-500 text-white p-4 rounded-lg text-center">Green Box</div>
+        <div class="bg-purple-500 text-white p-4 rounded-lg text-center">Purple Box</div>
+      </div>
+    </div>
+  </div>
+
+  <router-outlet />
+</div>
