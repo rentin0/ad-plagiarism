@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
+import { ImagePuzzleComponent } from './components/image-puzzle/image-puzzle.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ButtonModule],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  imports: [RouterOutlet, ImagePuzzleComponent],
+  templateUrl: './app.html'
 })
 export class App {}
