@@ -6,11 +6,17 @@ export interface PieceEdges {
 }
 
 export class PuzzlePathGenerator {
+  private radius: number;
+  private protrusion: number;
+
   constructor(
     private pieceSize: number,
-    private radius: number = pieceSize * 0.15,
-    private protrusion: number = pieceSize * 0.15 * 0.6
-  ) {}
+    radius?: number,
+    protrusion?: number
+  ) {
+    this.radius = radius ?? pieceSize * 0.15;
+    this.protrusion = protrusion ?? pieceSize * 0.15 * 0.6;
+  }
 
   get margin(): number {
     return this.pieceSize * 0.24;

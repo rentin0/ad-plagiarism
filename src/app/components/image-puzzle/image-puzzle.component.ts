@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, computed, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -8,12 +8,12 @@ import { PuzzlePieceComponent, PuzzlePiece } from '../puzzle-piece/puzzle-piece.
 
 @Component({
   selector: 'app-image-puzzle',
-  standalone: true,
   imports: [CommonModule, PuzzlePieceComponent, ProgressBarModule, SkeletonModule, ButtonModule],
   templateUrl: './image-puzzle.component.html',
-  styleUrl: './image-puzzle.component.css'
+  styleUrl: './image-puzzle.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ImagePuzzleComponent {
+export class ImagePuzzleComponent implements OnInit {
   readonly gridSize = 3;
   readonly pieceSize = 150; // px
   readonly pieceGap = 0; // ピース間の隙間
@@ -27,12 +27,8 @@ export class ImagePuzzleComponent {
   imageUrl = 'https://picsum.photos/450/450'; // 450x450の固定画像(犬)
   maxZIndex = 1;
 
-  private pathGenerator: PuzzlePathGenerator;
+  private pathGenerator = new PuzzlePathGenerator(this.pieceSize);
   private inactivityTimer?: ReturnType<typeof setTimeout>;
-
-  constructor() {
-    this.pathGenerator = new PuzzlePathGenerator(this.pieceSize);
-  }
 
   ngOnInit() {
     // 画像をプリロード
@@ -76,14 +72,17 @@ export class ImagePuzzleComponent {
     setTimeout(() => {
       this.isAnimating.set(true);
       const pieces = this.pieces();
-      pieces.forEach((piece, index) => {
+      const shuffledPieces = pieces.map((piece, index) => {
         const shuffledPos = shuffledPositions[index];
-        piece.currentPosition = {
-          x: shuffledPos.x * (this.pieceSize + this.pieceGap),
-          y: shuffledPos.y * (this.pieceSize + this.pieceGap)
+        return {
+          ...piece,
+          currentPosition: {
+            x: shuffledPos.x * (this.pieceSize + this.pieceGap),
+            y: shuffledPos.y * (this.pieceSize + this.pieceGap)
+          }
         };
       });
-      this.pieces.set([...pieces]);
+      this.pieces.set(shuffledPieces);
 
       // アニメーション完了後にフラグをオフ
       setTimeout(() => {
@@ -115,7 +114,10 @@ export class ImagePuzzleComponent {
     return { horizontalEdges, verticalEdges };
   }
 
-  getPieceEdges(row: number, col: number, edgeMatrix: any) {
+  getPieceEdges(row: number, col: number, edgeMatrix: {
+    horizontalEdges: boolean[][];
+    verticalEdges: boolean[][];
+  }) {
     const edges = {
       top: 0,
       right: 0,
@@ -197,12 +199,16 @@ export class ImagePuzzleComponent {
 
     if (index === -1) return;
 
-    pieces[index].currentPosition = event.newPosition;
-
     this.maxZIndex++;
-    pieces[index].zIndex = this.maxZIndex;
 
-    this.pieces.set([...pieces]);
+    // 新しいオブジェクトを作成してイミュータブルに更新
+    const updatedPieces = pieces.map((p, i) =>
+      i === index
+        ? { ...p, currentPosition: event.newPosition, zIndex: this.maxZIndex }
+        : p
+    );
+
+    this.pieces.set(updatedPieces);
     this.checkCompletion();
     this.resetInactivityTimer();
   }
@@ -227,7 +233,7 @@ export class ImagePuzzleComponent {
     }, 5000);
   }
 
-  get progressValue(): number {
+  progressValue = computed(() => {
     const pieces = this.pieces();
     if (pieces.length === 0) return 0;
 
@@ -239,7 +245,7 @@ export class ImagePuzzleComponent {
     }).length;
 
     return Math.round((correctCount / pieces.length) * 100);
-  }
+  });
 
   checkCompletion() {
     const pieces = this.pieces();
@@ -263,8 +269,10 @@ export class ImagePuzzleComponent {
 
     if (index !== -1) {
       this.maxZIndex++;
-      pieces[index].zIndex = this.maxZIndex;
-      this.pieces.set([...pieces]);
+      const updatedPieces = pieces.map((p, i) =>
+        i === index ? { ...p, zIndex: this.maxZIndex } : p
+      );
+      this.pieces.set(updatedPieces);
     }
   }
 
