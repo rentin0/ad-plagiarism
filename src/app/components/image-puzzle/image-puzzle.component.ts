@@ -1,12 +1,13 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { PuzzlePathGenerator } from '../../services/puzzle-path-generator';
 import { PuzzlePieceComponent, PuzzlePiece } from '../puzzle-piece/puzzle-piece.component';
 
 @Component({
   selector: 'app-image-puzzle',
   standalone: true,
-  imports: [CommonModule, PuzzlePieceComponent],
+  imports: [CommonModule, PuzzlePieceComponent, ProgressBarModule],
   templateUrl: './image-puzzle.component.html',
   styleUrl: './image-puzzle.component.css'
 })
@@ -181,6 +182,20 @@ export class ImagePuzzleComponent {
 
     this.pieces.set([...pieces]);
     this.checkCompletion();
+  }
+
+  get progressValue(): number {
+    const pieces = this.pieces();
+    if (pieces.length === 0) return 0;
+
+    const gridStep = this.pieceSize + this.pieceGap;
+    const correctCount = pieces.filter(piece => {
+      const correctX = piece.gridPosition.x * gridStep;
+      const correctY = piece.gridPosition.y * gridStep;
+      return piece.currentPosition.x === correctX && piece.currentPosition.y === correctY;
+    }).length;
+
+    return Math.round((correctCount / pieces.length) * 100);
   }
 
   checkCompletion() {

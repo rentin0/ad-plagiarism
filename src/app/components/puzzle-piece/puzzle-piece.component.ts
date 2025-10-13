@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkDrag, CdkDragEnd } from '@angular/cdk/drag-drop';
 import { PuzzlePathGenerator } from '../../services/puzzle-path-generator';
@@ -22,10 +22,9 @@ export interface PuzzlePiece {
   selector: 'app-puzzle-piece',
   standalone: true,
   imports: [CommonModule, CdkDrag],
-  templateUrl: './puzzle-piece.component.html',
-  styleUrl: './puzzle-piece.component.css'
+  templateUrl: './puzzle-piece.component.html'
 })
-export class PuzzlePieceComponent {
+export class PuzzlePieceComponent implements OnInit {
   @Input() piece!: PuzzlePiece;
   @Input() pieceSize!: number;
   @Input() gridSize!: number;
@@ -35,6 +34,12 @@ export class PuzzlePieceComponent {
 
   @Output() positionChanged = new EventEmitter<{ piece: PuzzlePiece; newPosition: { x: number; y: number } }>();
   @Output() bringToFront = new EventEmitter<void>();
+
+  pathGenerator!: PuzzlePathGenerator;
+
+  ngOnInit() {
+    this.pathGenerator = new PuzzlePathGenerator(this.pieceSize);
+  }
 
   get isCorrect(): boolean {
     const gridStep = this.pieceSize + this.pieceGap;

@@ -1,12 +1,16 @@
-.puzzle-piece {
-  background-repeat: no-repeat;
+::ng-deep .p-progressbar {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 1rem !important;
+  height: 1.5rem !important;
+  border: 2px solid rgba(100, 100, 100, 0.4) !important;
 }
 
-.cdk-drag-preview {
-  opacity: 0.8;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+::ng-deep .p-progressbar-value {
+  background: linear-gradient(90deg, #a855f7 0%, #ec4899 100%) !important;
+  border-radius: 1rem !important;
 }
 
-.cdk-drag-animating {
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+::ng-deep .p-progressbar-label {
+  color: white !important;
+  font-weight: bold !important;
 }
