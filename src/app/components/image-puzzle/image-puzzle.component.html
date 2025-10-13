@@ -68,6 +68,7 @@
         [pieceGap]="pieceGap"
         [snapThreshold]="snapThreshold"
         [clipPathId]="'puzzle-clip-' + piece.id"
+        [isAnimating]="isAnimating()"
         (positionChanged)="onPositionChanged($event)"
         (bringToFront)="bringToFront(piece)"
       />

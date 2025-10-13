@@ -22,6 +22,7 @@ export class ImagePuzzleComponent {
   pieces = signal<PuzzlePiece[]>([]);
   isCompleted = signal(false);
   isLoading = signal(true);
+  isAnimating = signal(false);
   imageUrl = 'https://picsum.photos/450/450'; // 450x450の固定画像(犬)
   maxZIndex = 1;
 
@@ -52,7 +53,6 @@ export class ImagePuzzleComponent {
     for (let i = 0; i < this.gridSize * this.gridSize; i++) {
       const row = Math.floor(i / this.gridSize);
       const col = i % this.gridSize;
-      const shuffledPos = shuffledPositions[i];
       const edges = this.getPieceEdges(row, col, edgeMatrix);
 
       console.log(`Piece [${row}][${col}]:`, edges);
@@ -63,9 +63,9 @@ export class ImagePuzzleComponent {
         imageUrl: this.imageUrl,
         gridPosition: { x: col, y: row }, // 正解のグリッド位置
         currentPosition: {
-          x: shuffledPos.x * (this.pieceSize + this.pieceGap),
-          y: shuffledPos.y * (this.pieceSize + this.pieceGap)
-        }, // シャッフルされた初期位置
+          x: col * (this.pieceSize + this.pieceGap),
+          y: row * (this.pieceSize + this.pieceGap)
+        }, // 最初は正解位置に配置
         zIndex: i,
         edges: edges
       });
@@ -74,6 +74,25 @@ export class ImagePuzzleComponent {
     this.pieces.set(newPieces);
     this.isCompleted.set(false);
     this.maxZIndex = this.gridSize * this.gridSize;
+
+    // 1秒後にシャッフル位置へアニメーション
+    setTimeout(() => {
+      this.isAnimating.set(true);
+      const pieces = this.pieces();
+      pieces.forEach((piece, index) => {
+        const shuffledPos = shuffledPositions[index];
+        piece.currentPosition = {
+          x: shuffledPos.x * (this.pieceSize + this.pieceGap),
+          y: shuffledPos.y * (this.pieceSize + this.pieceGap)
+        };
+      });
+      this.pieces.set([...pieces]);
+
+      // アニメーション完了後にフラグをオフ
+      setTimeout(() => {
+        this.isAnimating.set(false);
+      }, 1000);
+    }, 1000);
   }
 
   generateEdgeMatrix() {

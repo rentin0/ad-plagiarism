@@ -1,11 +1,14 @@
 <div
   cdkDrag
-  [cdkDragDisabled]="isCorrect"
+  [cdkDragDisabled]="isCorrect || isAnimating"
   (cdkDragEnded)="onDragEnded($event)"
   (mousedown)="onMouseDown()"
-  class="absolute transition-none"
-  [class.cursor-move]="!isCorrect"
-  [class.cursor-default]="isCorrect"
+  class="absolute"
+  [class.transition-none]="!isAnimating"
+  [class.transition-all]="isAnimating"
+  [class.duration-500]="isAnimating"
+  [class.cursor-move]="!isCorrect && !isAnimating"
+  [class.cursor-default]="isCorrect || isAnimating"
   [style.width.px]="pieceSize + pieceSize * 0.48"
   [style.height.px]="pieceSize + pieceSize * 0.48"
   [style.left.px]="piece.currentPosition.x + 16 - pieceSize * 0.24"

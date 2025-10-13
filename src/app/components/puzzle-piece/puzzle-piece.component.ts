@@ -31,6 +31,7 @@ export class PuzzlePieceComponent implements OnInit {
   @Input() pieceGap!: number;
   @Input() snapThreshold!: number;
   @Input() clipPathId!: string;
+  @Input() isAnimating = false;
 
   @Output() positionChanged = new EventEmitter<{ piece: PuzzlePiece; newPosition: { x: number; y: number } }>();
   @Output() bringToFront = new EventEmitter<void>();
