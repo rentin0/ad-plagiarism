@@ -2,12 +2,21 @@ import { Component, input, output, computed, ChangeDetectionStrategy } from '@an
 import { CommonModule } from '@angular/common';
 import { CdkDrag, CdkDragEnd } from '@angular/cdk/drag-drop';
 
+/**
+ * パズルピースのデータ構造
+ */
 export interface PuzzlePiece {
+  /** ピースの一意なID */
   id: number;
+  /** 画像のURL */
   imageUrl: string;
+  /** グリッド上の正解位置 */
   gridPosition: { x: number; y: number };
+  /** 現在の表示位置 */
   currentPosition: { x: number; y: number };
+  /** 重なり順序（z-index） */
   zIndex: number;
+  /** 各辺の形状（0: フラット, 1: 凸, -1: 凹） */
   edges: {
     top: number;
     right: number;
@@ -16,6 +25,10 @@ export interface PuzzlePiece {
   };
 }
 
+/**
+ * パズルピースコンポーネント
+ * 個々のパズルピースを表示し、ドラッグ＆ドロップの操作を処理
+ */
 @Component({
   selector: 'app-puzzle-piece',
   imports: [CommonModule, CdkDrag],
@@ -34,9 +47,14 @@ export class PuzzlePieceComponent {
   positionChanged = output<{ piece: PuzzlePiece; newPosition: { x: number; y: number } }>();
   bringToFront = output<void>();
 
+  /** スナップアニメーション中かどうか */
   isSnapping = false;
+  /** 前回の位置チェック時に正解位置だったか */
   private wasCorrect = false;
 
+  /**
+   * ピースが正しい位置にあるかどうかを計算
+   */
   isCorrect = computed(() => {
     const gridStep = this.pieceSize() + this.pieceGap();
     const correctX = this.piece().gridPosition.x * gridStep;
@@ -44,6 +62,9 @@ export class PuzzlePieceComponent {
     return this.piece().currentPosition.x === correctX && this.piece().currentPosition.y === correctY;
   });
 
+  /**
+   * 画像の背景位置を計算（ピースの正しい部分を表示するため）
+   */
   backgroundPosition = computed(() => {
     const margin = this.pieceSize() * 0.24;
     const offsetX = -this.piece().gridPosition.x * this.pieceSize() + margin;
@@ -51,11 +72,19 @@ export class PuzzlePieceComponent {
     return `${offsetX}px ${offsetY}px`;
   });
 
+  /**
+   * 画像の背景サイズを計算（グリッド全体のサイズ）
+   */
   backgroundSize = computed(() => {
     const totalSize = this.pieceSize() * this.gridSize();
     return `${totalSize}px ${totalSize}px`;
   });
 
+  /**
+   * ドラッグ終了時の処理
+   * ピースをグリッドにスナップさせ、正しい位置の場合はアニメーション表示
+   * @param event ドラッグイベント
+   */
   onDragEnded(event: CdkDragEnd) {
     const newX = this.piece().currentPosition.x + event.distance.x;
     const newY = this.piece().currentPosition.y + event.distance.y;
@@ -79,6 +108,12 @@ export class PuzzlePieceComponent {
     event.source.reset();
   }
 
+  /**
+   * 座標を最も近いグリッド位置にスナップ
+   * @param x X座標
+   * @param y Y座標
+   * @returns スナップ後の座標、またはスナップ範囲外の場合null
+   */
   private snapToGrid(x: number, y: number): { x: number; y: number } | null {
     const gridStep = this.pieceSize() + this.pieceGap();
     const gridX = Math.round(x / gridStep);
@@ -100,6 +135,10 @@ export class PuzzlePieceComponent {
     return null;
   }
 
+  /**
+   * マウスダウン時の処理
+   * ピースを最前面に移動
+   */
   onMouseDown() {
     this.bringToFront.emit();
   }
