@@ -2,3 +2,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* PrimeNG Skeleton background color */
+.p-skeleton {
+  background-color: #CCC !important;
+}

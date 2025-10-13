@@ -1,13 +1,15 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProgressBarModule } from 'primeng/progressbar';
+import { SkeletonModule } from 'primeng/skeleton';
+import { ButtonModule } from 'primeng/button';
 import { PuzzlePathGenerator } from '../../services/puzzle-path-generator';
 import { PuzzlePieceComponent, PuzzlePiece } from '../puzzle-piece/puzzle-piece.component';
 
 @Component({
   selector: 'app-image-puzzle',
   standalone: true,
-  imports: [CommonModule, PuzzlePieceComponent, ProgressBarModule],
+  imports: [CommonModule, PuzzlePieceComponent, ProgressBarModule, SkeletonModule, ButtonModule],
   templateUrl: './image-puzzle.component.html',
   styleUrl: './image-puzzle.component.css'
 })
@@ -19,6 +21,7 @@ export class ImagePuzzleComponent {
 
   pieces = signal<PuzzlePiece[]>([]);
   isCompleted = signal(false);
+  isLoading = signal(true);
   imageUrl = 'https://picsum.photos/450/450'; // 450x450の固定画像(犬)
   maxZIndex = 1;
 
@@ -30,10 +33,12 @@ export class ImagePuzzleComponent {
 
   ngOnInit() {
     // 画像をプリロード
+    this.isLoading.set(true);
     const img = new Image();
     img.src = this.imageUrl;
     img.onload = () => {
       this.initializePuzzle();
+      this.isLoading.set(false);
     };
   }
 

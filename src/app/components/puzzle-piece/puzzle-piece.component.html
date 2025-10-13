@@ -20,16 +20,5 @@
       [style.background-position]="backgroundPosition"
       [style.background-size]="backgroundSize"
       [style.opacity]="isCorrect ? '1' : '0.8'"
-    ></div>
-    @if (!isCorrect) {
-      <svg class="absolute w-full h-full pointer-events-none" [attr.viewBox]="'0 0 ' + (pieceSize + pieceSize * 0.48) + ' ' + (pieceSize + pieceSize * 0.48)">
-        <path
-          [attr.d]="pathGenerator.generatePath(piece.edges)"
-          fill="none"
-          stroke="#555"
-          stroke-width="2"
-        />
-      </svg>
-    }
-  </div>
+    >
 </div>
