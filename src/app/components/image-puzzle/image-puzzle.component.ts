@@ -23,10 +23,12 @@ export class ImagePuzzleComponent {
   isCompleted = signal(false);
   isLoading = signal(true);
   isAnimating = signal(false);
+  showHint = signal(false);
   imageUrl = 'https://picsum.photos/450/450'; // 450x450の固定画像(犬)
   maxZIndex = 1;
 
   private pathGenerator: PuzzlePathGenerator;
+  private inactivityTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
     this.pathGenerator = new PuzzlePathGenerator(this.pieceSize);
@@ -48,24 +50,19 @@ export class ImagePuzzleComponent {
     const shuffledPositions = this.getShuffledPositions();
     const edgeMatrix = this.generateEdgeMatrix();
 
-    console.log('Edge Matrix:', edgeMatrix);
-
     for (let i = 0; i < this.gridSize * this.gridSize; i++) {
       const row = Math.floor(i / this.gridSize);
       const col = i % this.gridSize;
       const edges = this.getPieceEdges(row, col, edgeMatrix);
 
-      console.log(`Piece [${row}][${col}]:`, edges);
-
       newPieces.push({
         id: i,
-        correctIndex: i,
         imageUrl: this.imageUrl,
-        gridPosition: { x: col, y: row }, // 正解のグリッド位置
+        gridPosition: { x: col, y: row },
         currentPosition: {
           x: col * (this.pieceSize + this.pieceGap),
           y: row * (this.pieceSize + this.pieceGap)
-        }, // 最初は正解位置に配置
+        },
         zIndex: 100 + i,
         edges: edges
       });
@@ -91,6 +88,7 @@ export class ImagePuzzleComponent {
       // アニメーション完了後にフラグをオフ
       setTimeout(() => {
         this.isAnimating.set(false);
+        this.resetInactivityTimer();
       }, 1000);
     }, 1000);
   }
@@ -206,6 +204,27 @@ export class ImagePuzzleComponent {
 
     this.pieces.set([...pieces]);
     this.checkCompletion();
+    this.resetInactivityTimer();
+  }
+
+  resetInactivityTimer() {
+    this.showHint.set(false);
+    if (this.inactivityTimer) {
+      clearTimeout(this.inactivityTimer);
+    }
+    this.startHintCycle();
+  }
+
+  private startHintCycle() {
+    this.inactivityTimer = setTimeout(() => {
+      if (!this.isCompleted()) {
+        this.showHint.set(true);
+        setTimeout(() => {
+          this.showHint.set(false);
+          this.startHintCycle(); // 再度サイクルを開始
+        }, 1000);
+      }
+    }, 5000);
   }
 
   get progressValue(): number {

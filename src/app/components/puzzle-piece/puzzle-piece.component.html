@@ -7,13 +7,15 @@
   [class.transition-none]="!isAnimating"
   [class.transition-all]="isAnimating"
   [class.duration-500]="isAnimating"
+  [class.animate-pulse-scale]="showHint && !isCorrect"
+  [class.animate-snap]="isSnapping"
   [class.cursor-move]="!isCorrect && !isAnimating"
   [class.cursor-default]="isCorrect || isAnimating"
   [style.width.px]="pieceSize + pieceSize * 0.48"
   [style.height.px]="pieceSize + pieceSize * 0.48"
   [style.left.px]="piece.currentPosition.x + 16 - pieceSize * 0.24"
   [style.top.px]="piece.currentPosition.y + 16 - pieceSize * 0.24"
-  [style.z-index]="isCorrect ? 0 : piece.zIndex"
+  [style.z-index]="isSnapping ? 1000 : (isCorrect ? 0 : piece.zIndex)"
 >
   <div class="relative w-full h-full">
     <div
@@ -22,6 +24,5 @@
       [style.background-image]="'url(' + piece.imageUrl + ')'"
       [style.background-position]="backgroundPosition"
       [style.background-size]="backgroundSize"
-      [style.opacity]="isCorrect ? '1' : '0.8'"
     >
 </div>

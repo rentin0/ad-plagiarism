@@ -1,11 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkDrag, CdkDragEnd } from '@angular/cdk/drag-drop';
-import { PuzzlePathGenerator } from '../../services/puzzle-path-generator';
 
 export interface PuzzlePiece {
   id: number;
-  correctIndex: number;
   imageUrl: string;
   gridPosition: { x: number; y: number };
   currentPosition: { x: number; y: number };
@@ -24,23 +22,20 @@ export interface PuzzlePiece {
   imports: [CommonModule, CdkDrag],
   templateUrl: './puzzle-piece.component.html'
 })
-export class PuzzlePieceComponent implements OnInit {
+export class PuzzlePieceComponent {
   @Input() piece!: PuzzlePiece;
   @Input() pieceSize!: number;
   @Input() gridSize!: number;
   @Input() pieceGap!: number;
   @Input() snapThreshold!: number;
-  @Input() clipPathId!: string;
   @Input() isAnimating = false;
+  @Input() showHint = false;
 
   @Output() positionChanged = new EventEmitter<{ piece: PuzzlePiece; newPosition: { x: number; y: number } }>();
   @Output() bringToFront = new EventEmitter<void>();
 
-  pathGenerator!: PuzzlePathGenerator;
-
-  ngOnInit() {
-    this.pathGenerator = new PuzzlePathGenerator(this.pieceSize);
-  }
+  isSnapping = false;
+  private wasCorrect = false;
 
   get isCorrect(): boolean {
     const gridStep = this.pieceSize + this.pieceGap;
@@ -64,10 +59,20 @@ export class PuzzlePieceComponent implements OnInit {
   onDragEnded(event: CdkDragEnd) {
     const newX = this.piece.currentPosition.x + event.distance.x;
     const newY = this.piece.currentPosition.y + event.distance.y;
-
     const snappedPos = this.snapToGrid(newX, newY);
 
     if (snappedPos) {
+      const gridStep = this.pieceSize + this.pieceGap;
+      const willBeCorrect =
+        snappedPos.x === this.piece.gridPosition.x * gridStep &&
+        snappedPos.y === this.piece.gridPosition.y * gridStep;
+
+      if (!this.wasCorrect && willBeCorrect) {
+        this.isSnapping = true;
+        setTimeout(() => this.isSnapping = false, 750);
+      }
+
+      this.wasCorrect = willBeCorrect;
       this.positionChanged.emit({ piece: this.piece, newPosition: snappedPos });
     }
 

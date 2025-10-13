@@ -67,8 +67,8 @@
         [gridSize]="gridSize"
         [pieceGap]="pieceGap"
         [snapThreshold]="snapThreshold"
-        [clipPathId]="'puzzle-clip-' + piece.id"
         [isAnimating]="isAnimating()"
+        [showHint]="showHint()"
         (positionChanged)="onPositionChanged($event)"
         (bringToFront)="bringToFront(piece)"
       />
