@@ -66,14 +66,14 @@ export class ImagePuzzleComponent {
           x: col * (this.pieceSize + this.pieceGap),
           y: row * (this.pieceSize + this.pieceGap)
         }, // 最初は正解位置に配置
-        zIndex: i,
+        zIndex: 100 + i,
         edges: edges
       });
     }
 
     this.pieces.set(newPieces);
     this.isCompleted.set(false);
-    this.maxZIndex = this.gridSize * this.gridSize;
+    this.maxZIndex = 100 + this.gridSize * this.gridSize;
 
     // 1秒後にシャッフル位置へアニメーション
     setTimeout(() => {
