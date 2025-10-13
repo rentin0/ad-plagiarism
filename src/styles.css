@@ -1,4 +1,46 @@
-/* You can add global styles to this file, and also import other style files */
+/* グローバルスタイル定義 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* PrimeNGスケルトンの背景色 */
+.p-skeleton {
+  background-color: #CCC !important;
+}
+
+/* パズルピースのヒントアニメーション（5秒放置時） */
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+  75% {
+    transform: rotate(-10deg);
+  }
+}
+
+.animate-pulse-scale {
+  animation: wiggle 1s ease-in-out;
+}
+
+/* ピースが正しい位置にはまった時のアニメーション */
+@keyframes snap {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-snap {
+  animation: snap 0.75s ease-in-out;
+}

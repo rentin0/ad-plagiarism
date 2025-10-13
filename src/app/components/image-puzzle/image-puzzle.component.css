@@ -1,0 +1,15 @@
+::ng-deep .p-progressbar {
+  background: rgba(255, 255, 255, 0.3) !important;
+  border-radius: 1rem !important;
+  height: 1.5rem !important;
+  border: 2px solid rgba(100, 100, 100, 0.4) !important;
+}
+
+::ng-deep .p-progressbar-value {
+  border-radius: 1rem !important;
+}
+
+::ng-deep .p-progressbar-label {
+  color: white !important;
+  font-weight: bold !important;
+}
