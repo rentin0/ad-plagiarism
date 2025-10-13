@@ -38,28 +38,16 @@
 
     <!-- パズルピース -->
     @for (piece of pieces(); track piece.id) {
-      <div
-        cdkDrag
-        [cdkDragDisabled]="isCorrectPosition(piece)"
-        (cdkDragEnded)="onDragEnded($event, piece)"
-        (mousedown)="bringToFront(piece)"
-        class="puzzle-piece absolute"
-        [class.cursor-move]="!isCorrectPosition(piece)"
-        [class.cursor-default]="isCorrectPosition(piece)"
-        [style.width.px]="pieceSize + pieceSize * 0.48"
-        [style.height.px]="pieceSize + pieceSize * 0.48"
-        [style.left.px]="piece.currentPosition.x + 16 - pieceSize * 0.24"
-        [style.top.px]="piece.currentPosition.y + 16 - pieceSize * 0.24"
-        [style.z-index]="isCorrectPosition(piece) ? 0 : piece.zIndex"
-      >
-        <div
-          class="w-full h-full drop-shadow-lg"
-          [style.clip-path]="'url(#puzzle-clip-' + piece.id + ')'"
-          [style.background-image]="'url(' + piece.imageUrl + ')'"
-          [style.background-position]="getBackgroundPosition(piece)"
-          [style.background-size]="getBackgroundSize()"
-        ></div>
-      </div>
+      <app-puzzle-piece
+        [piece]="piece"
+        [pieceSize]="pieceSize"
+        [gridSize]="gridSize"
+        [pieceGap]="pieceGap"
+        [snapThreshold]="snapThreshold"
+        [clipPathId]="'puzzle-clip-' + piece.id"
+        (positionChanged)="onPositionChanged($event)"
+        (bringToFront)="bringToFront(piece)"
+      />
     }
   </div>
 
