@@ -146,13 +146,26 @@ export class ImagePuzzleComponent {
       positions.push({ x: col, y: row });
     }
 
-    // Fisher-Yatesシャッフル
-    for (let i = positions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [positions[i], positions[j]] = [positions[j], positions[i]];
+    // 正解位置と完全に一致しないまでシャッフルを繰り返す
+    let isValidShuffle = false;
+    let shuffledPositions = [...positions];
+
+    while (!isValidShuffle) {
+      // Fisher-Yatesシャッフル
+      for (let i = shuffledPositions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledPositions[i], shuffledPositions[j]] = [shuffledPositions[j], shuffledPositions[i]];
+      }
+
+      // 全てのピースが正解位置と異なるかチェック
+      isValidShuffle = shuffledPositions.every((pos, index) => {
+        const correctRow = Math.floor(index / this.gridSize);
+        const correctCol = index % this.gridSize;
+        return pos.x !== correctCol || pos.y !== correctRow;
+      });
     }
 
-    return positions;
+    return shuffledPositions;
   }
 
   onPositionChanged(event: { piece: PuzzlePiece; newPosition: { x: number; y: number } }) {
