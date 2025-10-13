@@ -41,6 +41,7 @@ export class PuzzlePieceComponent {
   gridSize = input.required<number>();
   pieceGap = input.required<number>();
   snapThreshold = input.required<number>();
+  puzzleAreaPaddingRatio = input.required<number>();
   isAnimating = input<boolean>(false);
   showHint = input<boolean>(false);
 
@@ -136,10 +137,10 @@ export class PuzzlePieceComponent {
   }
 
   /**
-   * マウスダウン時の処理
-   * ピースを最前面に移動
+   * ドラッグ開始時の処理
+   * ピースを最前面に移動（タッチデバイスにも対応）
    */
-  onMouseDown() {
+  onDragStarted() {
     this.bringToFront.emit();
   }
 }

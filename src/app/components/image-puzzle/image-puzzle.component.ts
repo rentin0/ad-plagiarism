@@ -20,9 +20,10 @@ import confetti from 'canvas-confetti';
 })
 export class ImagePuzzleComponent implements OnInit {
   readonly gridSize = 3;
-  readonly pieceSize = 150; // ピースのサイズ（ピクセル）
+  pieceSize = 150; // ピースのサイズ（ピクセル）※レスポンシブ対応で動的に変更
   readonly pieceGap = 0; // ピース間の隙間
   readonly snapThreshold = 50; // スナップ判定の閾値
+  readonly puzzleAreaPaddingRatio = 0.3; // パズルエリアの余白率（ピースサイズに対する比率）
 
   pieces = signal<PuzzlePiece[]>([]);
   isCompleted = signal(false);
@@ -32,14 +33,19 @@ export class ImagePuzzleComponent implements OnInit {
   imageUrl = 'https://picsum.photos/450/450'; // 450x450のランダム画像
   maxZIndex = 1;
 
-  private pathGenerator = new PuzzlePathGenerator(this.pieceSize);
+  private pathGenerator!: PuzzlePathGenerator;
   private inactivityTimer?: ReturnType<typeof setTimeout>;
+  private isDragging = false; // ドラッグ中フラグ
 
   /**
    * コンポーネント初期化時の処理
-   * 画像をプリロードしてからパズルを初期化
+   * 画面サイズに応じてピースサイズを計算し、画像をプリロードしてからパズルを初期化
    */
   ngOnInit() {
+    // 画面サイズに応じてピースサイズを計算
+    this.calculatePieceSize();
+    this.pathGenerator = new PuzzlePathGenerator(this.pieceSize);
+
     // 画像をプリロード
     this.isLoading.set(true);
     const img = new Image();
@@ -48,6 +54,42 @@ export class ImagePuzzleComponent implements OnInit {
       this.initializePuzzle();
       this.isLoading.set(false);
     };
+
+    // ウィンドウリサイズ時の処理
+    window.addEventListener('resize', () => this.handleResize());
+  }
+
+  /**
+   * 画面サイズに応じてピースサイズを計算
+   * iPhone SE (375px) でも余裕を持って表示できるように調整
+   */
+  private calculatePieceSize() {
+    const screenWidth = window.innerWidth;
+    // 外側のpadding
+    const outerPadding = 16;
+
+    // 利用可能な幅 = 画面幅 - 外側padding - (ピースサイズ * 余白率)
+    // ピースサイズをxとすると: x * gridSize + x * puzzleAreaPaddingRatio = screenWidth - outerPadding
+    // x * (gridSize + puzzleAreaPaddingRatio) = screenWidth - outerPadding
+    const availableWidth = screenWidth - outerPadding;
+    const calculatedSize = Math.floor(availableWidth / (this.gridSize + this.puzzleAreaPaddingRatio * 2));
+
+    // 最小80px、最大150pxに制限
+    this.pieceSize = Math.max(80, Math.min(150, calculatedSize));
+  }
+
+  /**
+   * ウィンドウリサイズ時の処理
+   */
+  private handleResize() {
+    const oldSize = this.pieceSize;
+    this.calculatePieceSize();
+
+    // サイズが変わった場合はパズルを再初期化
+    if (oldSize !== this.pieceSize) {
+      this.pathGenerator = new PuzzlePathGenerator(this.pieceSize);
+      this.initializePuzzle();
+    }
   }
 
   /**
@@ -236,6 +278,7 @@ export class ImagePuzzleComponent implements OnInit {
     if (index === -1) return;
 
     this.maxZIndex++;
+    this.isDragging = false; // ドラッグ終了
 
     // 新しいオブジェクトを作成してイミュータブルに更新（OnPush戦略のため）
     const updatedPieces = pieces.map((p, i) =>
@@ -264,10 +307,11 @@ export class ImagePuzzleComponent implements OnInit {
   /**
    * ヒント表示サイクルを開始
    * 5秒間非アクティブ後、1秒間ヒントを表示し、再度サイクルを開始
+   * ドラッグ中はヒントを表示しない
    */
   private startHintCycle() {
     this.inactivityTimer = setTimeout(() => {
-      if (!this.isCompleted()) {
+      if (!this.isCompleted() && !this.isDragging) {
         this.showHint.set(true);
         setTimeout(() => {
           this.showHint.set(false);
@@ -363,6 +407,7 @@ export class ImagePuzzleComponent implements OnInit {
     const index = pieces.findIndex(p => p.id === piece.id);
 
     if (index !== -1) {
+      this.isDragging = true; // ドラッグ開始
       this.maxZIndex++;
       const updatedPieces = pieces.map((p, i) =>
         i === index ? { ...p, zIndex: this.maxZIndex } : p
