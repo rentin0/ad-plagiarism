@@ -13,8 +13,8 @@
   <!-- パズルエリア -->
   <div
     class="relative bg-white p-4 rounded-xl shadow-2xl"
-    [style.width.px]="pieceSize * gridSize + 32"
-    [style.height.px]="pieceSize * gridSize + 32"
+    [style.width.px]="(pieceSize + pieceGap) * gridSize - pieceGap + 32"
+    [style.height.px]="(pieceSize + pieceGap) * gridSize - pieceGap + 32"
   >
     <!-- グリッドガイド（薄い線） -->
     <div class="absolute inset-4 pointer-events-none">
@@ -25,23 +25,40 @@
       </div>
     </div>
 
+    <!-- SVG定義（クリップパス） -->
+    <svg class="absolute w-0 h-0">
+      <defs>
+        @for (piece of pieces(); track piece.id) {
+          <clipPath [id]="'puzzle-clip-' + piece.id">
+            <path [attr.d]="getPuzzlePath(piece)" />
+          </clipPath>
+        }
+      </defs>
+    </svg>
+
     <!-- パズルピース -->
     @for (piece of pieces(); track piece.id) {
       <div
         cdkDrag
+        [cdkDragDisabled]="isCorrectPosition(piece)"
         (cdkDragEnded)="onDragEnded($event, piece)"
         (mousedown)="bringToFront(piece)"
-        class="puzzle-piece absolute cursor-move"
-        [style.width.px]="pieceSize"
-        [style.height.px]="pieceSize"
-        [style.left.px]="piece.currentPosition.x + 16"
-        [style.top.px]="piece.currentPosition.y + 16"
-        [style.z-index]="piece.zIndex"
-        [style.background-image]="'url(' + piece.imageUrl + ')'"
-        [style.background-position]="getBackgroundPosition(piece)"
-        [style.background-size]="(pieceSize * gridSize) + 'px ' + (pieceSize * gridSize) + 'px'"
+        class="puzzle-piece absolute"
+        [class.cursor-move]="!isCorrectPosition(piece)"
+        [class.cursor-default]="isCorrectPosition(piece)"
+        [style.width.px]="pieceSize + pieceSize * 0.48"
+        [style.height.px]="pieceSize + pieceSize * 0.48"
+        [style.left.px]="piece.currentPosition.x + 16 - pieceSize * 0.24"
+        [style.top.px]="piece.currentPosition.y + 16 - pieceSize * 0.24"
+        [style.z-index]="isCorrectPosition(piece) ? 0 : piece.zIndex"
       >
-        <div class="w-full h-full border-4 border-white rounded-lg shadow-lg overflow-hidden hover:border-blue-300 transition-colors"></div>
+        <div
+          class="w-full h-full drop-shadow-lg"
+          [style.clip-path]="'url(#puzzle-clip-' + piece.id + ')'"
+          [style.background-image]="'url(' + piece.imageUrl + ')'"
+          [style.background-position]="getBackgroundPosition(piece)"
+          [style.background-size]="getBackgroundSize()"
+        ></div>
       </div>
     }
   </div>
