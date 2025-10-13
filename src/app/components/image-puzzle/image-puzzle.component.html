@@ -4,12 +4,6 @@
     <p class="text-gray-600">ドラッグ&ドロップでピースを並べ替えて画像を完成させよう！</p>
   </div>
 
-  @if (isCompleted()) {
-    <div class="mb-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-bounce">
-      <span class="text-xl font-bold">🎉 クリア！おめでとう！</span>
-    </div>
-  }
-
   <!-- 進捗ゲージ -->
   <div class="w-full max-w-2xl mb-6">
     @if (isLoading()) {

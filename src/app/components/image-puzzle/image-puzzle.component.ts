@@ -5,6 +5,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { ButtonModule } from 'primeng/button';
 import { PuzzlePathGenerator } from '../../services/puzzle-path-generator';
 import { PuzzlePieceComponent, PuzzlePiece } from '../puzzle-piece/puzzle-piece.component';
+import confetti from 'canvas-confetti';
 
 /**
  * 画像パズルメインコンポーネント
@@ -296,7 +297,7 @@ export class ImagePuzzleComponent implements OnInit {
 
   /**
    * パズル完了をチェック
-   * 全てのピースが正しい位置にある場合、完了フラグをtrueに設定
+   * 全てのピースが正しい位置にある場合、完了フラグをtrueに設定し、紙吹雪演出を表示
    */
   checkCompletion() {
     const pieces = this.pieces();
@@ -307,7 +308,42 @@ export class ImagePuzzleComponent implements OnInit {
       return piece.currentPosition.x === correctX && piece.currentPosition.y === correctY;
     });
 
+    const wasCompleted = this.isCompleted();
     this.isCompleted.set(isComplete);
+
+    // 完了した瞬間に紙吹雪を表示
+    if (isComplete && !wasCompleted) {
+      this.celebrateCompletion();
+    }
+  }
+
+  /**
+   * クリア時の紙吹雪演出
+   */
+  private celebrateCompletion() {
+    const duration = 3000;
+    const animationEnd = Date.now() + duration;
+
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        clearInterval(interval);
+        return;
+      }
+
+      const particleCount = 50;
+      confetti({
+        particleCount,
+        startVelocity: 30,
+        spread: 360,
+        origin: {
+          x: Math.random(),
+          y: Math.random() - 0.2
+        },
+        colors: ['#a855f7', '#ec4899', '#8b5cf6', '#f472b6']
+      });
+    }, 250);
   }
 
   /**
