@@ -1,0 +1,8 @@
+<h2>ユーザー一覧</h2>
+@if (users$ | async; as users) {
+  <ul>
+    @for (user of users; track user.id) {
+      <li>{{ user.name }}</li>
+    }
+  </ul>
+}

@@ -3,6 +3,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ナビゲーション */
+nav {
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  background: #f1f5f9;
+  border-radius: 0.25rem;
+}
+nav a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+nav a:hover {
+  text-decoration: underline;
+}
+
 /* PrimeNGスケルトンの背景色 */
 .p-skeleton {
   background-color: #CCC !important;

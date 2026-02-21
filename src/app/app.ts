@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { ImagePuzzleComponent } from './components/image-puzzle/image-puzzle.component';
+import { RouterLink, RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ImagePuzzleComponent],
+  imports: [RouterLink, RouterOutlet],
   templateUrl: './app.html'
 })
 export class App {}
