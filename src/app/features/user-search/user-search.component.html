@@ -1,0 +1,9 @@
+<p-panel header="ユーザー一覧" class="mb-4">
+  @if (users$ | async; as users) {
+    <ul class="list-none p-0 m-0 space-y-2">
+      @for (user of users; track user.id) {
+        <li class="p-2 rounded bg-slate-100 dark:bg-slate-800">{{ user.name }}</li>
+      }
+    </ul>
+  }
+</p-panel>
