@@ -1,5 +1,8 @@
 <p-panel header="ユーザー一覧" class="mb-4 p-8">
-  @if (usersState$ | async; as state) {
+  <div class="mb-4">
+    <input pInputText type="text" [formControl]="searchControl" placeholder="ユーザー名で検索" class="w-full" />
+  </div>
+  @if (filteredUsersState$ | async; as state) {
     @if (state.loading) {
       <p>Loading...</p>
     } @else if (state.users) {

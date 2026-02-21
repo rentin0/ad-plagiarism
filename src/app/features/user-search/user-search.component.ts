@@ -1,10 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
-import { map, startWith, catchError } from 'rxjs';
+import { map, startWith, catchError, debounceTime, combineLatest } from 'rxjs';
 import { of } from 'rxjs';
 
 import { PanelModule } from 'primeng/panel';
+import { InputTextModule } from 'primeng/inputtext';
 
 import { JsonPlaceholderService } from '../../services/json-placeholder.service';
 import type { User } from '../../models/user';
@@ -16,15 +18,36 @@ const initialUsersState: UsersState = { loading: true, users: null };
 @Component({
   selector: 'app-user-search',
   standalone: true,
-  imports: [CommonModule, PanelModule],
+  imports: [CommonModule, ReactiveFormsModule, PanelModule, InputTextModule],
   templateUrl: './user-search.component.html'
 })
 export class UserSearchComponent {
   private readonly jsonPlaceholderService = inject(JsonPlaceholderService);
 
-  usersState$: Observable<UsersState> = this.jsonPlaceholderService.getUsers().pipe(
+  searchControl = new FormControl('', { nonNullable: true });
+
+  private usersState$: Observable<UsersState> = this.jsonPlaceholderService.getUsers().pipe(
     map(users => ({ loading: false, users })),
     startWith(initialUsersState),
     catchError(() => of({ ...initialUsersState, loading: false }))
+  );
+
+  private searchTerm$ = this.searchControl.valueChanges.pipe(
+    startWith(this.searchControl.value),
+    debounceTime(300),
+    map(term => term.toLowerCase().trim())
+  );
+
+  filteredUsersState$: Observable<UsersState> = combineLatest([
+    this.usersState$,
+    this.searchTerm$
+  ]).pipe(
+    map(([state, term]) => {
+      if (state.loading || !state.users) return state;
+      const filtered = term
+        ? state.users.filter(user => user.name.toLowerCase().includes(term))
+        : state.users;
+      return { ...state, users: filtered };
+    })
   );
 }
