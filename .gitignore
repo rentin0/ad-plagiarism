@@ -8,6 +8,8 @@
 
 # Node
 /node_modules
+.pnpm-store/
+pnpm-debug.log
 npm-debug.log
 yarn-error.log
 
