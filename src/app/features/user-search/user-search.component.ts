@@ -35,17 +35,19 @@ export class UserSearchComponent {
   private searchTerm$ = this.searchControl.valueChanges.pipe(
     startWith(this.searchControl.value),
     debounceTime(300),
-    map(term => term.toLowerCase().trim())
+    map(searchTerm => searchTerm.toLowerCase().trim())
   );
 
   filteredUsersState$: Observable<UsersState> = combineLatest([
     this.usersState$,
     this.searchTerm$
   ]).pipe(
-    map(([state, term]) => {
-      if (state.loading || !state.users) return state;
-      const filtered = term
-        ? state.users.filter(user => user.name.toLowerCase().includes(term))
+    map(([state, searchTerm]) => {
+      if (state.loading || !state.users) {
+        return state;
+      }
+      const filtered = searchTerm
+        ? state.users.filter(user => user.name.toLowerCase().includes(searchTerm))
         : state.users;
       return { ...state, users: filtered };
     })
