@@ -1,9 +1,13 @@
-<p-panel header="ユーザー一覧" class="mb-4">
-  @if (users$ | async; as users) {
-    <ul class="list-none p-0 m-0 space-y-2">
-      @for (user of users; track user.id) {
-        <li class="p-2 rounded bg-slate-100 dark:bg-slate-800">{{ user.name }}</li>
-      }
-    </ul>
+<p-panel header="ユーザー一覧" class="mb-4 p-8">
+  @if (usersState$ | async; as state) {
+    @if (state.loading) {
+      <p>Loading...</p>
+    } @else if (state.users) {
+      <ul class="list-none p-0 m-0 space-y-2">
+        @for (user of state.users; track user.id) {
+          <li class="p-2 rounded bg-slate-100 dark:bg-slate-800">{{ user.name }}</li>
+        }
+      </ul>
+    }
   }
 </p-panel>
