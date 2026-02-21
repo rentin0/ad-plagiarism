@@ -32,22 +32,22 @@ export class UserSearchComponent {
     catchError(() => of({ ...initialUsersState, loading: false }))
   );
 
-  private searchTerm$ = this.searchControl.valueChanges.pipe(
+  private filterKeyword$ = this.searchControl.valueChanges.pipe(
     startWith(this.searchControl.value),
     debounceTime(300),
-    map(searchTerm => searchTerm.toLowerCase().trim())
+    map(filterKeyword => filterKeyword.toLowerCase().trim())
   );
 
   filteredUsersState$: Observable<UsersState> = combineLatest([
     this.usersState$,
-    this.searchTerm$
+    this.filterKeyword$
   ]).pipe(
-    map(([state, searchTerm]) => {
+    map(([state, filterKeyword]) => {
       if (state.loading || !state.users) {
         return state;
       }
-      const filtered = searchTerm
-        ? state.users.filter(user => user.name.toLowerCase().includes(searchTerm))
+      const filtered = filterKeyword
+        ? state.users.filter(user => user.name.toLowerCase().includes(filterKeyword))
         : state.users;
       return { ...state, users: filtered };
     })
