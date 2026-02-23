@@ -1,29 +1,14 @@
 <div
   cdkDrag
-  [cdkDragDisabled]="isCorrect() || isAnimating()"
+  [cdkDragDisabled]="isDragDisabled()"
   (cdkDragStarted)="onDragStarted()"
   (cdkDragEnded)="onDragEnded($event)"
-  class="absolute"
-  [class.transition-none]="!isAnimating()"
-  [class.transition-all]="isAnimating()"
-  [class.duration-500]="isAnimating()"
-  [class.animate-pulse-scale]="showHint() && !isCorrect()"
+  [ngClass]="cssClasses()"
   [class.animate-snap]="isSnapping"
-  [class.cursor-move]="!isCorrect() && !isAnimating()"
-  [class.cursor-default]="isCorrect() || isAnimating()"
-  [style.width.px]="pieceSize() + pieceSize() * 0.48"
-  [style.height.px]="pieceSize() + pieceSize() * 0.48"
-  [style.left.px]="piece().currentPosition.x + pieceSize() * puzzleAreaPaddingRatio() - pieceSize() * 0.24"
-  [style.top.px]="piece().currentPosition.y + pieceSize() * puzzleAreaPaddingRatio() - pieceSize() * 0.24"
-  [style.z-index]="isSnapping ? 1000 : (isCorrect() ? 0 : piece().zIndex)"
+  [ngStyle]="cssStyles()"
+  [style.z-index]="isSnapping ? 1000 : cssStyles()['z-index']"
 >
   <div class="relative w-full h-full">
-    <div
-      class="absolute w-full h-full drop-shadow-lg"
-      [style.clip-path]="'url(#puzzle-clip-' + piece().id + ')'"
-      [style.background-image]="'url(' + piece().imageUrl + ')'"
-      [style.background-position]="backgroundPosition()"
-      [style.background-size]="backgroundSize()"
-    ></div>
+    <div class="absolute w-full h-full drop-shadow-lg" [ngStyle]="imageStyles()"></div>
   </div>
 </div>
