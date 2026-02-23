@@ -3,11 +3,13 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm install -g pnpm
-        - pnpm install
+        - curl -fsSL https://bun.sh/install | bash
+        - export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH"
+        - bun install
     build:
       commands:
-        - pnpm run build
+        - export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH"
+        - bun run build
   artifacts:
     baseDirectory: dist/ad-plagiarism-app/browser
     files:
