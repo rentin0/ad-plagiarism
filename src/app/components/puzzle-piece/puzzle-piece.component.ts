@@ -1,20 +1,13 @@
-import { Component, input, output, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, input, output, computed, effect, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CdkDrag, CdkDragEnd } from '@angular/cdk/drag-drop';
+import { PuzzleStateService, TAB_RATIO } from '../../services/puzzle-state.service';
 
-/**
- * パズルピースのデータ構造
- */
 export interface PuzzlePiece {
-  /** ピースの一意なID */
   id: number;
-  /** 画像のURL */
   imageUrl: string;
-  /** グリッド上の正解位置 */
   gridPosition: { x: number; y: number };
-  /** 現在の表示位置 */
   currentPosition: { x: number; y: number };
-  /** 重なり順序（z-index） */
   zIndex: number;
   /** 各辺の形状（0: フラット, 1: 凸, -1: 凹） */
   edges: {
@@ -25,10 +18,6 @@ export interface PuzzlePiece {
   };
 }
 
-/**
- * パズルピースコンポーネント
- * 個々のパズルピースを表示し、ドラッグ＆ドロップの操作を処理
- */
 @Component({
   selector: 'app-puzzle-piece',
   imports: [CommonModule, CdkDrag],
@@ -36,111 +25,104 @@ export interface PuzzlePiece {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PuzzlePieceComponent {
+  private readonly puzzleState = inject(PuzzleStateService);
+
   piece = input.required<PuzzlePiece>();
-  pieceSize = input.required<number>();
-  gridSize = input.required<number>();
-  pieceGap = input.required<number>();
-  snapThreshold = input.required<number>();
-  puzzleAreaPaddingRatio = input.required<number>();
-  isAnimating = input<boolean>(false);
-  showHint = input<boolean>(false);
 
-  positionChanged = output<{ piece: PuzzlePiece; newPosition: { x: number; y: number } }>();
-  bringToFront = output<void>();
+  dragEnded = output<{ pieceId: number; delta: { x: number; y: number } }>();
+  dragStarted = output<{ pieceId: number }>();
 
-  /** スナップアニメーション中かどうか */
   isSnapping = false;
-  /** 前回の位置チェック時に正解位置だったか */
   private wasCorrect = false;
 
-  /**
-   * ピースが正しい位置にあるかどうかを計算
-   */
-  isCorrect = computed(() => {
-    const gridStep = this.pieceSize() + this.pieceGap();
-    const correctX = this.piece().gridPosition.x * gridStep;
-    const correctY = this.piece().gridPosition.y * gridStep;
-    return this.piece().currentPosition.x === correctX && this.piece().currentPosition.y === correctY;
-  });
-
-  /**
-   * 画像の背景位置を計算（ピースの正しい部分を表示するため）
-   */
-  backgroundPosition = computed(() => {
-    const margin = this.pieceSize() * 0.24;
-    const offsetX = -this.piece().gridPosition.x * this.pieceSize() + margin;
-    const offsetY = -this.piece().gridPosition.y * this.pieceSize() + margin;
-    return `${offsetX}px ${offsetY}px`;
-  });
-
-  /**
-   * 画像の背景サイズを計算（グリッド全体のサイズ）
-   */
-  backgroundSize = computed(() => {
-    const totalSize = this.pieceSize() * this.gridSize();
-    return `${totalSize}px ${totalSize}px`;
-  });
-
-  /**
-   * ドラッグ終了時の処理
-   * ピースをグリッドにスナップさせ、正しい位置の場合はアニメーション表示
-   * @param event ドラッグイベント
-   */
-  onDragEnded(event: CdkDragEnd) {
-    const newX = this.piece().currentPosition.x + event.distance.x;
-    const newY = this.piece().currentPosition.y + event.distance.y;
-    const snappedPos = this.snapToGrid(newX, newY);
-
-    if (snappedPos) {
-      const gridStep = this.pieceSize() + this.pieceGap();
-      const willBeCorrect =
-        snappedPos.x === this.piece().gridPosition.x * gridStep &&
-        snappedPos.y === this.piece().gridPosition.y * gridStep;
-
-      if (!this.wasCorrect && willBeCorrect) {
+  constructor() {
+    effect(() => {
+      const correct = this.isCorrect();
+      if (correct && !this.wasCorrect) {
         this.isSnapping = true;
         setTimeout(() => this.isSnapping = false, 750);
       }
-
-      this.wasCorrect = willBeCorrect;
-      this.positionChanged.emit({ piece: this.piece(), newPosition: snappedPos });
-    }
-
-    event.source.reset();
+      this.wasCorrect = correct;
+    });
   }
 
-  /**
-   * 座標を最も近いグリッド位置にスナップ
-   * @param x X座標
-   * @param y Y座標
-   * @returns スナップ後の座標、またはスナップ範囲外の場合null
-   */
-  private snapToGrid(x: number, y: number): { x: number; y: number } | null {
-    const gridStep = this.pieceSize() + this.pieceGap();
-    const gridX = Math.round(x / gridStep);
-    const gridY = Math.round(y / gridStep);
+  readonly isAnimating = this.puzzleState.isAnimating;
+  readonly showHint = this.puzzleState.showHint;
 
-    if (gridX < 0 || gridX >= this.gridSize() || gridY < 0 || gridY >= this.gridSize()) {
-      return null;
-    }
+  isCorrect = computed(() => {
+    const gridStep = this.puzzleState.gridStep();
+    const { gridPosition, currentPosition } = this.piece();
+    return currentPosition.x === gridPosition.x * gridStep
+        && currentPosition.y === gridPosition.y * gridStep;
+  });
 
-    const snappedX = gridX * gridStep;
-    const snappedY = gridY * gridStep;
+  isDragDisabled = computed(() => this.isCorrect() || this.isAnimating());
 
-    const distance = Math.sqrt(Math.pow(x - snappedX, 2) + Math.pow(y - snappedY, 2));
+  /** ドラッグ可否・アニメーション・ヒント等をまとめたクラスマップ */
+  cssClasses = computed(() => {
+    const animating = this.isAnimating();
+    const correct = this.isCorrect();
+    const hinting = this.showHint() && !correct;
+    return {
+      'absolute': true,
+      'transition-none': !animating,
+      'transition-all': animating,
+      'duration-500': animating,
+      'animate-pulse-scale': hinting,
+      'cursor-move': !correct && !animating,
+      'cursor-default': correct || animating,
+    };
+  });
 
-    if (distance <= this.snapThreshold()) {
-      return { x: snappedX, y: snappedY };
-    }
+  /** 位置・サイズ・z-indexをまとめたスタイルオブジェクト */
+  cssStyles = computed(() => {
+    const size = this.puzzleState.renderSize();
+    const offset = this.renderOffset();
+    const zIndex = this.isCorrect() ? 0 : this.piece().zIndex;
+    return {
+      'width.px': size,
+      'height.px': size,
+      'left.px': offset.x,
+      'top.px': offset.y,
+      'z-index': zIndex,
+    };
+  });
 
-    return null;
-  }
+  /** 画像レイヤーのスタイル */
+  imageStyles = computed(() => {
+    const ps = this.puzzleState.config().pieceSize;
+    const { gridPosition } = this.piece();
+    const margin = ps * TAB_RATIO;
+    const { pieceSize, gridSize } = this.puzzleState.config();
+    const total = pieceSize * gridSize;
+    return {
+      'clip-path': `url(#puzzle-clip-${this.piece().id})`,
+      'background-image': `url(${this.piece().imageUrl})`,
+      'background-position': `${-gridPosition.x * ps + margin}px ${-gridPosition.y * ps + margin}px`,
+      'background-size': `${total}px ${total}px`,
+    };
+  });
 
-  /**
-   * ドラッグ開始時の処理
-   * ピースを最前面に移動（タッチデバイスにも対応）
-   */
+  private renderOffset = computed(() => {
+    const config = this.puzzleState.config();
+    const { currentPosition } = this.piece();
+    const tabOffset = config.pieceSize * TAB_RATIO;
+    const padding = config.pieceSize * config.puzzleAreaPaddingRatio;
+    return {
+      x: currentPosition.x + padding - tabOffset,
+      y: currentPosition.y + padding - tabOffset,
+    };
+  });
+
   onDragStarted() {
-    this.bringToFront.emit();
+    this.dragStarted.emit({ pieceId: this.piece().id });
+  }
+
+  onDragEnded(event: CdkDragEnd) {
+    this.dragEnded.emit({
+      pieceId: this.piece().id,
+      delta: { x: event.distance.x, y: event.distance.y },
+    });
+    event.source.reset();
   }
 }
